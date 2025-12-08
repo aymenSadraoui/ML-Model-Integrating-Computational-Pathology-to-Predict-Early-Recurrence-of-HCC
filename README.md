@@ -11,18 +11,55 @@ __Authors:__ Astrid Laurent-Bellue*, Aymen Sadraoui*, Aurélie Beaufrère, Julie
 ## Repository Structure
 ```
 📁ML-Model-Integrating-Computational-Pathology-to-Predict-Early-Recurrence-of-HCC
+    └── 📁checkpoints
+        └── 📁coords_pickles
     └── 📁data
+        └── 📁patches
+        └── 📁tabs
+            ├── table_prognosis.xlsx
+        └── 📁WSIs
+            └── 📁BJ
+                └── 📁Patient_161
+                    ├── 161A.svs
+                    ├── 161B.svs
+            └── 📁HM
+                └── 📁Patient_111
+                    ├── 111A.csv
+                    ├── 111A.ndpi
+                    ├── 111A.ndpi.ndpa
+                    ├── 111B.ndpi
+                    ├── 111C.ndpi
+            └── 📁PB
+                └── 📁Patient_1
+                    └── 📁1A
+                    └── 📁1B
+                    └── 📁1C
+                    ├── 1A_Annotations.xml
+                    ├── 1A.mrxs
+                    ├── 1B_Annotations.xml
+                    ├── 1B.mrxs
+                    ├── 1C_Annotations.xml
+                    ├── 1C.mrxs
     └── 📁experiments
     └── 📁figures
     └── 📁notebooks
+        ├── STEP1&1bis_gen_patches_from_WSI.ipynb
     └── 📁results
     └── 📁src
+        ├── __init__.py
+    └── 📁utils
+        ├── __init__.py
+        ├── utils.py
     ├── .gitignore
+    ├── init.py
     ├── LICENSE
     ├── README.md
-    └── requirements.txt
+    ├── requirements.txt
+    └── setup.py
 ```
 
+## Data
+![data_dist](figures/Fig4_distribution_of_patients_KbHmBj_UPDATED.jpg)
 
 ## Results
 ### Main cohort: Paul-Brousse
