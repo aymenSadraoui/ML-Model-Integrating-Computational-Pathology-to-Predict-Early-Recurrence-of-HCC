@@ -1,0 +1,26 @@
+# Image patching parameters
+patching:
+  vis_scale: 0.007
+  patch_size: 1152
+  patch_size_hm: 626
+  patch_size_bj: 1094
+
+# Visualization parameters
+visualization:
+  color_map: "CMRmap_r"
+
+  colors:
+    pej: [220, 20, 60]           # crimson
+    non_pej: [255, 215, 0]       # gold
+    healthy: [50, 205, 50]       # lime green
+
+# Model parameters
+model:
+  batch_size: 16
+  path_triple_resnets: "../models"
+
+paths:
+  pth_to_patches: "../data/patches/"
+  pth_to_coords: "../checkpoints/coords_pickles"
+  pth_to_tumor_ckpts: "../checkpoints/tumor_pickles"
+  pth_to_preds_wsis: "../results/overview_preds_tumor_wsis"
