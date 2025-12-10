@@ -6,7 +6,11 @@ import numpy as np
 from pathlib import Path
 import matplotlib.pyplot as plt
 from matplotlib.patches import Rectangle
+from matplotlib.ticker import FuncFormatter
 
+
+def log_tick_formatter(x, pos):
+    return f"{np.expm1(x):.0f}"
 
 def interpolate(size, nominateur, denominateur):
     """
