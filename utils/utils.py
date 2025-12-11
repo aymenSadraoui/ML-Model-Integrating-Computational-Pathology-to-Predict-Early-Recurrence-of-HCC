@@ -60,29 +60,30 @@ def image_stats(image):
     return mean, std
 
 
-def color_transfer(source, target):
-    """Perform color transfer from the target image to the source image."""
-    # Convert images from BGR to Lab color space
-    source_lab = cv2.cvtColor(source, cv2.COLOR_RGB2Lab)
-    target_lab = cv2.cvtColor(target, cv2.COLOR_RGB2Lab)
+def color_transfer(target, reference):
+    """
+    Transfers color from a reference patch (Paul-Brousse) to a target patch (Mondor or Beaujon) using mean and standard deviation matching in L*a*b* color space.
 
-    # Compute the mean and standard deviation of each channel
-    mean_src, std_src = image_stats(source_lab)
-    mean_tar, std_tar = image_stats(target_lab)
+    Args:
+        reference (numpy.ndarray): reference image  (H, W, 3) in RGB.
+        target (numpy.ndarray): target image (to transform) (H, W, 3) in RGB.
 
-    # Subtract the mean from the source image
-    source_lab = (source_lab - mean_src) / std_src
+    Returns:
+        numpy.ndarray: Color transferred patch (H, W, 3) in RGB.
+    """
+    reference_lab = cv2.cvtColor(reference, cv2.COLOR_RGB2LAB).astype(np.float32)
+    target_lab = cv2.cvtColor(target, cv2.COLOR_RGB2LAB).astype(np.float32)
 
-    # Scale by the standard deviation of the target and add the target mean
-    source_lab = source_lab * std_tar + mean_tar
+    mean_src, std_src = cv2.meanStdDev(reference_lab)
+    mean_tgt, std_tgt = cv2.meanStdDev(target_lab)
+    mean_src = mean_src.flatten()
+    std_src = std_src.flatten()
+    mean_tgt = mean_tgt.flatten()
+    std_tgt = std_tgt.flatten()
 
-    # Clip the values to the valid range [0, 255] and convert back to uint8
-    source_lab = np.clip(source_lab, 0, 255).astype(np.uint8)
-
-    # Convert back to BGR color space
-    transfer = cv2.cvtColor(source_lab, cv2.COLOR_Lab2RGB)
-
-    return transfer
+    norm_lab = (target_lab - mean_tgt) * (std_src / (std_tgt + 1e-10)) + mean_src
+    norm_lab = np.clip(norm_lab, 0, 255).astype(np.uint8)
+    return cv2.cvtColor(norm_lab, cv2.COLOR_LAB2RGB)
 
 
 def generate_patches_from_wsi(
@@ -96,7 +97,7 @@ def generate_patches_from_wsi(
     coords_path,
     perc_bpx=0.05,
     perc_wpx=0.85,
-    enlarge=20,
+    enlarge=5,
 ):
     real_enlarge = int(enlarge / vis_scale)
     slide_name = f"{path_to_wsi}/{slide_name}"
