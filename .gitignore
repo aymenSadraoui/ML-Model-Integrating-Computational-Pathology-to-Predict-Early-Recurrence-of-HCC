@@ -17,5 +17,5 @@ ML_HCC_Recurrence_Prediction.egg-info
 *.pth
 
 *.jpg
-*A_overview.png
-*C_overview.png
+*A_*.png
+*C_*.png
