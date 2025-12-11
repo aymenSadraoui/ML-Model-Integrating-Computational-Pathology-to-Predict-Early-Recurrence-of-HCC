@@ -4,6 +4,9 @@ patching:
   patch_size: 1152
   patch_size_hm: 626
   patch_size_bj: 1094
+  perc_wpx: 0.7
+  perc_bpx: 0.05
+  enlarge: 5
 
 # Visualization parameters
 visualization:
@@ -16,11 +19,11 @@ visualization:
 
 # Model parameters
 model:
-  batch_size: 16
-  path_triple_resnets: "../models"
+  batch_size: 64
+  path_triple_resnets: "models"
 
 paths:
-  pth_to_patches: "../data/patches/"
-  pth_to_coords: "../checkpoints/coords_pickles"
-  pth_to_tumor_ckpts: "../checkpoints/tumor_pickles"
-  pth_to_preds_wsis: "../results/overview_preds_tumor_wsis"
+  pth_to_patches: "data/patches/"
+  pth_to_coords: "checkpoints/coords_pickles"
+  pth_to_tumor_ckpts: "checkpoints/tumor_pickles"
+  pth_to_preds_wsis: "results/overview_preds_tumor_wsis"

@@ -27,7 +27,7 @@ __Authors:__ Astrid Laurent-Bellue*, Aymen Sadraoui*, Aurélie Beaufrère, Julie
     └── 📁experiments
     └── 📁figures
     └── 📁notebooks
-        ├── STEP1&1bis_gen_patches_from_WSI.ipynb
+        ├── STEP1&1bis_gen_multiscale_patches_from_WSI.ipynb
     └── 📁results
         └── 📁overview_wsis
     └── 📁src

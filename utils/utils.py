@@ -12,6 +12,7 @@ from matplotlib.ticker import FuncFormatter
 def log_tick_formatter(x, pos):
     return f"{np.expm1(x):.0f}"
 
+
 def interpolate(size, nominateur, denominateur):
     """
     size = 1152 or 1024 or 512
@@ -98,6 +99,7 @@ def generate_patches_from_wsi(
     perc_bpx=0.05,
     perc_wpx=0.85,
     enlarge=5,
+    verbose=False,
 ):
     real_enlarge = int(enlarge / vis_scale)
     slide_name = f"{path_to_wsi}/{slide_name}"
@@ -162,7 +164,8 @@ def generate_patches_from_wsi(
         ax.axis("off")
     plt.tight_layout()
     plt.savefig(f"{overview_path}/{slide_name}_overview.png", dpi=150)
-    plt.show()
+    if verbose:
+        plt.show()
 
     to_save = {
         "coords_x": coords_x,
