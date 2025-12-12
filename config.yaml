@@ -27,4 +27,6 @@ paths:
   pth_to_coords: "checkpoints/coords_pickles"
   pth_to_tumor_ckpts: "checkpoints/tumor_pickles"
   pth_to_inflams_dats: "checkpoints/inflam_dats"
+  pth_to_inflams_ckpts: "checkpoints/inflam_pickles"
   pth_to_preds_wsis: "results/overview_preds_tumor_wsis"
+  pth_to_inflams_wsis: "results/overview_preds_inflam_wsis"
