@@ -10,33 +10,47 @@ __Authors:__ Astrid Laurent-Bellue*, Aymen Sadraoui*, Aurélie Beaufrère, Julie
 
 ## Repository Structure
 ```
-📁ML-Model-Integrating-Computational-Pathology-to-Predict-Early-Recurrence-of-HCC
-    └── 📁checkpoints
-        └── 📁coords_pickles
-    └── 📁data
+🧬 ML-Model-Integrating-Computational-Pathology-to-Predict-Early-Recurrence-of-HCC
+    └── 💾checkpoints
+        ├── 📁coords_pickles
+        ├── 📁tumor_pickles
+    └── 🗃️data
         └── 📁patches
         └── 📁tabs
-            ├── table_prognosis.xlsx
         └── 📁WSIs
-            └── 📁BJ
-                └── 📁Patient_161
-            └── 📁HM
-                └── 📁Patient_111
-            └── 📁PB
-                └── 📁Patient_1
-    └── 📁experiments
-    └── 📁figures
-    └── 📁notebooks
-        ├── STEP1&1bis_gen_multiscale_patches_from_WSI.ipynb
-    └── 📁results
+    └── 🧪experiments
+    └── 🖼️figures
+    └── 🤖models
+        ├── TripleIndepResNet34_Fold1.pt
+        ├── TripleIndepResNet34_Fold2.pt
+        ├── TripleIndepResNet34_Fold3.pt
+        ├── TripleIndepResNet34_Fold4.pt
+        └── TripleIndepResNet34_Fold5.pt
+    └── 📓notebooks
+        ├── color_transfer_from_PB_to_external.ipynb
+        ├── init_inflam_detection_with_Tia.ipynb
+        ├── STEP1_gen_patches_from_WSI.ipynb
+        ├── STEP2_detect_tumor_from_WSI.ipynb
+        └── STEP3_detect_inflammatory_cells.ipynb
+    └── 📊results
+        ├── 📁overview_preds_tumor_wsis
         └── 📁overview_wsis
-    └── 📁src
-        ├── __init__.py
-    └── 📁utils
-        ├── __init__.py
+    └── 📜scripts
+        ├── run_step1.sh
+        └── run_step2.sh
+    └── 🧩src
+        ├── STEP0_create_directories.py
+        ├── STEP1_gen_patches_from_WSI.py
+        └── STEP2_detect_tumor_from_WSI.py
+    └── 🛠️utils
+        ├── ImageSet.py
         ├── init.py
-        ├── utils.py
+        ├── model_archi.py
+        ├── utils_inflams.py
+        ├── utils_tumor.py
+        └── utils.py
     ├── .gitignore
+    ├── config.yaml
     ├── LICENSE
     ├── README.md
     ├── requirements.txt
