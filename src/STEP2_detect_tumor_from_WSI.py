@@ -36,7 +36,9 @@ def main():
     with open("config.yaml", "r") as f:
         config = yaml.safe_load(f)
     tumor_pickles = config["paths"]["pth_to_tumor_ckpts"]
-    if not os.path.exists(f"{tumor_pickles}/{slide_name}"):
+    if not os.path.exists(
+        f"{tumor_pickles}/{slide_name}_preds_probas_checkpoint.pickle"
+    ):
         patches_dir = config["paths"]["pth_to_patches"]
         coords_pickles = config["paths"]["pth_to_coords"]
         preds_wsis_results = config["paths"]["pth_to_preds_wsis"]
@@ -64,9 +66,9 @@ def main():
             2: config["visualization"]["colors"]["pej"],
         }
         colors_TNT = {
-            0: (46, 139, 87),
-            1: (128, 0, 0),
-            2: (128, 0, 0),
+            0: (34, 139, 34),
+            1: (178, 34, 34),
+            2: (178, 34, 34),
         }
 
         cmap = plt.get_cmap(config["visualization"]["color_map"])
@@ -76,7 +78,7 @@ def main():
             print("patches are from Paul-Brousse ==> no color transfer needed")
             X, Y = gen_multiscale_patches(slide_name, patches_dir)
         else:
-            reference_pb = plt.imread("HES__5.jpeg")
+            reference_pb = plt.imread("notebooks/HES__5.jpeg")
             print("patches are from Beaujon ==> color transfer is needed")
             X, Y = gen_multiscale_patches(
                 slide_name,

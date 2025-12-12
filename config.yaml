@@ -19,7 +19,7 @@ visualization:
 
 # Model parameters
 model:
-  batch_size: 64
+  batch_size: 32
   path_triple_resnets: "models"
 
 paths:
