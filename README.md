@@ -3,10 +3,19 @@
 This repository contains the code and supplementary materials for our article:
 *Machine Learning Model Integrating Computational Pathology to Predict Early Recurrence of Hepatocellular Carcinoma after Resection*
 
-__Authors:__ Astrid Laurent-Bellue*, Aymen Sadraoui*, Aurélie Beaufrère, Julien Calderaro, Katia Posseme, Véronique Bruna, Antoinette Lemoine, Agnès Bourillon, Antonio Sa Cunha, Daniel Cherqui, Eric Vibert, Olivier Rosmorduc, Valérie Paradis, Maïté Lewin, Jean-Christophe Pesquet, Catherine Guettier
-*These authors contributed equally to this work
+__Authors:__ Astrid Laurent-Bellue*, Aymen Sadraoui*, Aurélie Beaufrère, Julien Calderaro, Katia Posseme, Véronique Bruna, Antoinette Lemoine, Agnès Bourillon, Antonio Sa Cunha, Daniel Cherqui, Eric Vibert, Olivier Rosmorduc, Valérie Paradis, Maïté Lewin, Jean-Christophe Pesquet, Catherine Guettier<br>*These authors contributed equally to this work
+
 ![Graphical abstract](figures/graphical_abstract_UPDATED.jpg)  
 
+## Data
+![data_dist](figures/Fig4_distribution_of_patients_KbHmBj_UPDATED.jpg)
+
+## Results
+### Main cohort: Paul-Brousse
+![Internal_Cohort](figures/Figure5.jpg)  
+
+### External cohorts: Henri-Mondor & Beaujon
+![Internal_Cohort](figures/Figure6.jpg) 
 
 ## Repository Structure
 ```
@@ -57,12 +66,21 @@ __Authors:__ Astrid Laurent-Bellue*, Aymen Sadraoui*, Aurélie Beaufrère, Julie
     └── setup.py
 ```
 
-## Data
-![data_dist](figures/Fig4_distribution_of_patients_KbHmBj_UPDATED.jpg)
+## Installation
+First clone the repo and cd into the directory:
+```
+git clone https://github.com/aymenSadraoui/ML-Model-Integrating-Computational-Pathology-to-Predict-Early-Recurrence-of-HCC.git
+cd ML-Model-Integrating-Computational-Pathology-to-Predict-Early-Recurrence-of-HCC
+```
+Then create a conda env and install the dependencies:
+```
+conda create -n prognosis python=3.12 -y
+conda activate prognosis
+pip install -e .
+```
 
-## Results
-### Main cohort: Paul-Brousse
-![Internal_Cohort](figures/Figure5.jpg)  
-
-### External cohorts: Henri-Mondor & Beaujon
-![Internal_Cohort](figures/Figure6.jpg) 
+<div align="center">
+  <img src="figures/centrale_supelec.png" alt="Centrale Supélec" width="270" style="max-width: 100%; height: auto; margin: 0 15px;"/>
+  <img src="figures/logo-cvn.png" alt="CVN" width="280" style="max-width: 100%; height: auto; margin: 0 15px;"/>
+  <img src="figures/logo_kb.png" alt="Karolinska" width="160" style="max-width: 100%; height: auto; margin: 0 15px;"/>
+</div>
