@@ -1,6 +1,7 @@
 data
 __pycache__
 .vscode
+.ipynb_checkpoints
 ML_HCC_Recurrence_Prediction.egg-info
 
 *.mrxs
@@ -19,5 +20,7 @@ ML_HCC_Recurrence_Prediction.egg-info
 *.jpg
 
 *A_*.png
-*C_*.png
+*B_*.png
 *D_*.png
+
+sample_tile.png
