@@ -1,0 +1,7 @@
+python src/STEP0_create_directories.py
+
+wsi_path="data/patches_clr/*"
+for wsi in $wsi_path; do
+    echo "processing $wsi"
+    python src/STEP3_detect_inflammatory_cells.py --slide_name "$wsi"
+done
