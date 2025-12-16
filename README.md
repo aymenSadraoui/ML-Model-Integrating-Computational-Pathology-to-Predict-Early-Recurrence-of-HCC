@@ -110,6 +110,20 @@ You can download them from Google Drive:
 
 After downloading, place the weight files in the appropriate directory `models/`.
 
+> 📄 Note: If you use these pretrained models in your work, please consider citing:
+```
+@article{LAURENTBELLUE20241684,
+title = {Deep Learning Classification and Quantification of Pejorative and Nonpejorative Architectures in Resected Hepatocellular Carcinoma from Digital Histopathologic Images},
+journal = {The American Journal of Pathology},
+volume = {194},
+number = {9},
+pages = {1684-1700},
+year = {2024},
+issn = {0002-9440},
+}
+```
+
+
 ### Installation
 Clone the repo and `cd` into the directory:
 ```
