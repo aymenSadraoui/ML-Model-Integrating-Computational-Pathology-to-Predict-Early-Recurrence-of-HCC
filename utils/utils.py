@@ -13,17 +13,57 @@ def log_tick_formatter(x, pos):
     return f"{np.expm1(x):.0f}"
 
 
-def interpolate(size, nominateur, denominateur):
+def interpolate(size: int, nominateur: float, denominateur: float):
     """
-    size = 1152 or 1024 or 512
-    nominateur = 3DHisto resolution = 0.25
-    denominateur = hamamatsu resolution = 0.46
+    Calculate the interpolated size based on the ratio between two resolutions.
+
+    This function adjusts a given size by scaling it according to the ratio of two
+    microscopy image resolutions. It is commonly used to convert dimensions between
+    different scanner formats (e.g., 3D Histopathology vs. Hamamatsu/Leica scanners).
+
+    Args:
+        size (int): The original dimension size (typically 1152, 1024, or 512 pixels).
+        nominateur (float): The source resolution in micrometers per pixel
+                           (e.g., 0.25 for 3D Histopathology - Paul-Brousse).
+        denominateur (float): The target resolution in micrometers per pixel
+                             (e.g., 0.46 for Hamamatsu or 0.26 for Leica - Mondor/Beaujon).
+
+    Returns:
+        int: The scaled size adjusted for the resolution ratio.
+
+    Example:
+        >>> interpolate(1152, 0.25, 0.46)
+        625
     """
     return int((size * nominateur) // denominateur)
 
 
-# Patch generation steps
 def get_BrightandDark_perc(pil_image, bright_threshold=200, dark_threshold=20):
+    """
+    Calculate the percentage of bright and dark pixels in an image.
+
+    This function converts a PIL image to grayscale and computes the proportion
+    of pixels that are considered "bright" (white) and "dark" (black) based on
+    specified intensity thresholds.
+
+    Args:
+        pil_image (PIL.Image): A PIL Image object to analyze.
+        bright_threshold (int, optional): The grayscale intensity threshold above which
+            pixels are considered bright. Defaults to 200.
+        dark_threshold (int, optional): The grayscale intensity threshold below which
+            pixels are considered dark. Defaults to 20.
+
+    Returns:
+        tuple: A tuple containing:
+            - bright_percentage (float): The proportion of bright pixels (0.0 to 1.0).
+            - dark_percentage (float): The proportion of dark pixels (0.0 to 1.0).
+
+    Example:
+        >>> from PIL import Image
+        >>> img = Image.open('sample.jpg')
+        >>> bright_pct, dark_pct = get_BrightandDark_perc(img)
+        >>> print(f"Bright: {bright_pct:.2%}, Dark: {dark_pct:.2%}")
+    """
     grayscale_image = np.array(pil_image.convert("L"))
     # Count bright/white and dark/black pixels
     bright_pixels = np.sum(grayscale_image > bright_threshold)
@@ -36,6 +76,17 @@ def get_BrightandDark_perc(pil_image, bright_threshold=200, dark_threshold=20):
 
 
 def detect_tissue_regions(array_slide):
+    """
+    Detect the largest tissue region in a slide image and return its bounding rectangle.
+    Args:
+        array_slide (np.ndarray): A slide image as a NumPy array in RGB color format.
+    Returns:
+        np.ndarray: A 1D array containing [x, y, w, h] where:
+            - x (int): The x-coordinate of the top-left corner of the bounding rectangle
+            - y (int): The y-coordinate of the top-left corner of the bounding rectangle
+            - w (int): The width of the bounding rectangle
+            - h (int): The height of the bounding rectangle
+    """
     gray = cv2.cvtColor(array_slide, cv2.COLOR_RGB2GRAY)
     _, binary_mask = cv2.threshold(
         gray, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU
@@ -53,7 +104,7 @@ def detect_tissue_regions(array_slide):
     return np.array([x, y, w, h])
 
 
-def image_stats(image):
+def image_stats(image: np.ndarray):
     """Compute the mean and standard deviation of each channel in the image."""
     mean, std = cv2.meanStdDev(image)
     mean = mean.flatten()

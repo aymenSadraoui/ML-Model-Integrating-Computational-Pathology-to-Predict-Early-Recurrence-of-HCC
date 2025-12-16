@@ -18,6 +18,20 @@ color2class = {
 
 
 def gen_image_from_coords(coords_x, coords_y, y_har, step, colors):
+    """
+    Generate an image from coordinate points with associated colors.
+    This function creates a white image and fills rectangular regions defined by
+    coordinate points with colors based on provided labels/predictions.
+    Args:
+        coords_x (array-like): X-coordinates of the points.
+        coords_y (array-like): Y-coordinates of the points.
+        y_har (array-like): Labels or predictions for each coordinate point.
+        step (int): Size of the square region to fill around each coordinate (step x step).
+        colors (dict or array-like): Mapping of labels to RGB color values.
+    Returns:
+        np.ndarray: Image array of shape (height, width, 3) with dtype uint8 containing
+                   the generated image with colored regions. Background is white (255).
+    """
     image = 255 + np.zeros(
         (int(coords_y.max()) + 2 * step, int(coords_x.max()) + 2 * step, 3),
         dtype=np.uint8,
@@ -28,6 +42,15 @@ def gen_image_from_coords(coords_x, coords_y, y_har, step, colors):
 
 
 def load_models(pth):
+    """
+    Load multiple pre-trained ResNet34 models.
+    This function loads 5 independently trained TripleResNet34 models
+    Args:
+        pth (str): Directory path containing the model checkpoint files.
+    Returns:
+        list: A list of 5 IndepResNetModel instances, each loaded with pre-trained weights
+              and moved to CUDA device for GPU computation.
+    """
     models = []
     for i in tqdm(range(1, 6), desc="loading TripleResnet34"):
         model = IndepResNetModel().cuda()
