@@ -34,10 +34,12 @@ def main():
 
     with open("config.yaml", "r") as f:
         config = yaml.safe_load(f)
-    tumor_pickles = config["paths"]["pth_to_tumor_ckpts"]
-    if not os.path.exists(f"{tumor_pickles}/{slide_name}_preds_probas_checkpoint.pt"):
+    tumor_checkpoints = config["paths"]["pth_to_tumor_ckpts"]
+    if not os.path.exists(
+        f"{tumor_checkpoints}/{slide_name}_preds_probas_checkpoint.pt"
+    ):
         patches_dir = config["paths"]["pth_to_patches"]
-        coords_pickles = config["paths"]["pth_to_coords"]
+        coords_checkpoints = config["paths"]["pth_to_coords"]
         preds_wsis_results = config["paths"]["pth_to_preds_wsis"]
 
         batch_size = config["model"]["batch_size"]
@@ -110,7 +112,8 @@ def main():
             coords_y.append(int(y))
 
         coords = torch.load(
-            f"{coords_pickles}/{slide_name}_coords_checkpoint.pt", weights_only=False
+            f"{coords_checkpoints}/{slide_name}_coords_checkpoint.pt",
+            weights_only=False,
         )
         scaled_slide = coords["scaled_slide"]
         [x_start, y_start, _, _] = coords["xy_start_end"]
@@ -128,7 +131,7 @@ def main():
             "arith_mean_proba": y_arith_mean_proba,
             "arith_mean_preds": y_arith_preds,
         }
-        handle = f"{tumor_pickles}/{slide_name}_preds_probas_checkpoint.pt"
+        handle = f"{tumor_checkpoints}/{slide_name}_preds_probas_checkpoint.pt"
         torch.save(to_save, handle)
 
         pred_sets = [

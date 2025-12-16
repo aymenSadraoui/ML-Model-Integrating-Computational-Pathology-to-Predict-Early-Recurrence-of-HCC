@@ -40,15 +40,16 @@ def main():
     vis_scale = config["patching"]["vis_scale"]
     pth_to_inflams_dats = config["paths"]["pth_to_inflams_dats"]
     patches_dir = config["paths"]["pth_to_patches"].replace("patches", "patches_bis")
-    coords_pickles = config["paths"]["pth_to_coords"]
-    inflams_pickles = config["paths"]["pth_to_inflams_ckpts"]
+    coords_checkpoints = config["paths"]["pth_to_coords"]
+    inflams_checkpoints = config["paths"]["pth_to_inflams_ckpts"]
     inflams_wsis_results = config["paths"]["pth_to_inflams_wsis"]
 
     if not os.path.exists(
-        f"{inflams_pickles}/{slide_name}_coords_inflams_checkpoint.pt"
+        f"{inflams_checkpoints}/{slide_name}_coords_inflams_checkpoint.pt"
     ):
         coords = torch.load(
-            f"{coords_pickles}/{slide_name}_coords_checkpoint.pt", weights_only=False
+            f"{coords_checkpoints}/{slide_name}_coords_checkpoint.pt",
+            weights_only=False,
         )
 
         coords_x, coords_y = [], []
@@ -116,7 +117,7 @@ def main():
             "xy_start_end": coords["xy_start_end"],
             "xywh_real": coords["xywh_real"],
         }
-        handle = f"{inflams_pickles}/{slide_name}_coords_inflams_checkpoint.pt"
+        handle = f"{inflams_checkpoints}/{slide_name}_coords_inflams_checkpoint.pt"
         torch.save(to_save, handle)
 
         cX = np.array(coords_X) * vis_scale - x_start

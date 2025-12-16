@@ -52,10 +52,10 @@ __Authors:__ Astrid Laurent-Bellue*, Aymen Sadraoui*, Aurélie Beaufrère, Julie
 ```
 🧬 ML-Model-Integrating-Computational-Pathology-to-Predict-Early-Recurrence-of-HCC
     └── 💾checkpoints
-    │    ├── 📁coords_pickles
+    │    ├── 📁coords_checkpoints
     |    ├── 📁inflam_dats
-    |    ├── 📁inflam_pickles
-    │    └── 📁tumor_pickles
+    |    ├── 📁inflam_checkpoints
+    │    └── 📁tumor_checkpoints
     ├── 🗃️data
     │    ├── 📁patches
     │    ├── 📁tabs
