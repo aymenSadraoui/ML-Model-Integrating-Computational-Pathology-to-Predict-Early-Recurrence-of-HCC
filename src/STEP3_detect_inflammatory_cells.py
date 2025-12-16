@@ -1,5 +1,4 @@
 import os
-import pickle
 import joblib
 import torch
 import argparse
@@ -46,12 +45,11 @@ def main():
     inflams_wsis_results = config["paths"]["pth_to_inflams_wsis"]
 
     if not os.path.exists(
-        f"{inflams_pickles}/{slide_name}_coords_inflams_checkpoint.pickle"
+        f"{inflams_pickles}/{slide_name}_coords_inflams_checkpoint.pt"
     ):
-        with open(
-            f"{coords_pickles}/{slide_name}_coords_checkpoint.pickle", "rb"
-        ) as handle:
-            coords = pickle.load(handle)
+        coords = torch.load(
+            f"{coords_pickles}/{slide_name}_coords_checkpoint.pt", weights_only=False
+        )
 
         coords_x, coords_y = [], []
         for patch in os.listdir(f"{patches_dir}/{slide_name}"):
@@ -118,10 +116,8 @@ def main():
             "xy_start_end": coords["xy_start_end"],
             "xywh_real": coords["xywh_real"],
         }
-        with open(
-            f"{inflams_pickles}/{slide_name}_coords_inflams_checkpoint.pickle", "wb"
-        ) as handle:
-            pickle.dump(to_save, handle, protocol=pickle.HIGHEST_PROTOCOL)
+        handle = f"{inflams_pickles}/{slide_name}_coords_inflams_checkpoint.pt"
+        torch.save(to_save, handle)
 
         cX = np.array(coords_X) * vis_scale - x_start
         cY = np.array(coords_Y) * vis_scale - y_start

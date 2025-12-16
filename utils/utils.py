@@ -1,5 +1,5 @@
 import cv2
-import pickle
+import torch
 import openslide
 from tqdm import tqdm
 import numpy as np
@@ -227,6 +227,6 @@ def generate_patches_from_wsi(
         "vis_scale": vis_scale,
     }
 
-    with open(f"{coords_path}/{slide_name}_coords_checkpoint.pickle", "wb") as handle:
-        pickle.dump(to_save, handle, protocol=pickle.HIGHEST_PROTOCOL)
+    handle = f"{coords_path}/{slide_name}_coords_checkpoint.pickle"
+    torch.save(to_save, handle)
     print(slide_name, "done!")

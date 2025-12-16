@@ -1,6 +1,5 @@
 import torch
 import os
-import pickle
 import argparse
 import yaml
 import numpy as np
@@ -36,9 +35,7 @@ def main():
     with open("config.yaml", "r") as f:
         config = yaml.safe_load(f)
     tumor_pickles = config["paths"]["pth_to_tumor_ckpts"]
-    if not os.path.exists(
-        f"{tumor_pickles}/{slide_name}_preds_probas_checkpoint.pickle"
-    ):
+    if not os.path.exists(f"{tumor_pickles}/{slide_name}_preds_probas_checkpoint.pt"):
         patches_dir = config["paths"]["pth_to_patches"]
         coords_pickles = config["paths"]["pth_to_coords"]
         preds_wsis_results = config["paths"]["pth_to_preds_wsis"]
@@ -112,10 +109,9 @@ def main():
             coords_x.append(int(x))
             coords_y.append(int(y))
 
-        with open(
-            f"{coords_pickles}/{slide_name}_coords_checkpoint.pickle", "rb"
-        ) as handle:
-            coords = pickle.load(handle)
+        coords = torch.load(
+            f"{coords_pickles}/{slide_name}_coords_checkpoint.pt", weights_only=False
+        )
         scaled_slide = coords["scaled_slide"]
         [x_start, y_start, _, _] = coords["xy_start_end"]
         coords_x = np.array(coords_x) * vis_scale - x_start
@@ -132,10 +128,8 @@ def main():
             "arith_mean_proba": y_arith_mean_proba,
             "arith_mean_preds": y_arith_preds,
         }
-        with open(
-            f"{tumor_pickles}/{slide_name}_preds_probas_checkpoint.pickle", "wb"
-        ) as handle:
-            pickle.dump(to_save, handle, protocol=pickle.HIGHEST_PROTOCOL)
+        handle = f"{tumor_pickles}/{slide_name}_preds_probas_checkpoint.pt"
+        torch.save(to_save, handle)
 
         pred_sets = [
             ("ArithMean", y_arith_preds, y_arith_mean_proba),
