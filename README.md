@@ -1,23 +1,54 @@
-# Machine Learning Model Integrating Computational Pathology to Predict Early Recurrence of Hepatocellular Carcinoma after Resection
+<p align="center">
+  <strong style="color:#d73a49; font-size:1.2em;">
+    🚧 WORK IN PROGRESS — Code cleaning and upload in progress 🚧
+  </strong>
+</p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/status-work_in_progress-red" />
+</p>
+
+
+## Machine Learning Model Integrating Computational Pathology to Predict Early Recurrence of Hepatocellular Carcinoma after Resection
 
 This repository contains the code and supplementary materials for our article:
 *Machine Learning Model Integrating Computational Pathology to Predict Early Recurrence of Hepatocellular Carcinoma after Resection*
 
 __Authors:__ Astrid Laurent-Bellue*, Aymen Sadraoui*, Aurélie Beaufrère, Julien Calderaro, Katia Posseme, Véronique Bruna, Antoinette Lemoine, Agnès Bourillon, Antonio Sa Cunha, Daniel Cherqui, Eric Vibert, Olivier Rosmorduc, Valérie Paradis, Maïté Lewin, Jean-Christophe Pesquet, Catherine Guettier<br>*These authors contributed equally to this work
+<p align="center">
+  <img src="figures/graphical_abstract_UPDATED.jpg"
+       alt="Graphical abstract"
+       width="1070"
+       style="max-width:100%; height:auto;" />
+</p>
 
-![Graphical abstract](figures/graphical_abstract_UPDATED.jpg)  
 
-## Data
-![data_dist](figures/Fig4_distribution_of_patients_KbHmBj_UPDATED.jpg)
+### Data
+<p align="center">
+  <img src="figures/Fig4_distribution_of_patients_KbHmBj_UPDATED.jpg"
+       alt="data_dist"
+       width="600"
+       style="max-width:100%; height:auto;" />
+</p>
 
-## Results
-### Main cohort: Paul-Brousse
-![Internal_Cohort](figures/Figure5.jpg)  
+### Results
+#### Main cohort: Paul-Brousse
+<p align="center">
+  <img src="figures/Figure5.jpg"
+       alt="Internal_Cohort"
+       width="750"
+       style="max-width:100%; height:auto;" />
+</p>
 
-### External cohorts: Henri-Mondor & Beaujon
-![Internal_Cohort](figures/Figure6.jpg) 
+#### External cohorts: Henri-Mondor & Beaujon
+<p align="center">
+  <img src="figures/Figure6.jpg"
+       alt="external_Cohort"
+       width="750"
+       style="max-width:100%; height:auto;" />
+</p>
 
-## Repository Structure
+### Repository Structure
 ```
 🧬 ML-Model-Integrating-Computational-Pathology-to-Predict-Early-Recurrence-of-HCC
     └── 💾checkpoints
@@ -66,7 +97,7 @@ __Authors:__ Astrid Laurent-Bellue*, Aymen Sadraoui*, Aurélie Beaufrère, Julie
     └── setup.py
 ```
 
-## Installation
+### Installation
 First clone the repo and cd into the directory:
 ```
 git clone https://github.com/aymenSadraoui/ML-Model-Integrating-Computational-Pathology-to-Predict-Early-Recurrence-of-HCC.git
