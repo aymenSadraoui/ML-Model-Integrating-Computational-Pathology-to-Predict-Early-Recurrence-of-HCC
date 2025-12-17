@@ -117,8 +117,6 @@ def main():
         )
         scaled_slide = coords["scaled_slide"]
         [x_start, y_start, _, _] = coords["xy_start_end"]
-        coords_x = np.array(coords_x) * vis_scale - x_start
-        coords_y = np.array(coords_y) * vis_scale - y_start
 
         to_save = {
             "scaled_slide": scaled_slide,
@@ -133,6 +131,9 @@ def main():
         }
         handle = f"{tumor_checkpoints}/{slide_name}_preds_probas_checkpoint.pt"
         torch.save(to_save, handle)
+
+        coords_x = np.array(coords_x) * vis_scale - x_start
+        coords_y = np.array(coords_y) * vis_scale - y_start
 
         pred_sets = [
             ("ArithMean", y_arith_preds, y_arith_mean_proba),
