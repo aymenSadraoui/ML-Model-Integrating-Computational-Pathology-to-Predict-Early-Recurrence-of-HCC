@@ -41,6 +41,47 @@ def gen_image_from_coords(coords_x, coords_y, y_har, step, colors):
     return image
 
 
+def gen_image_from_coords_bis(coords_x, coords_y, inflams, step):
+    """
+    Generate an image from coordinate and inflammation data.
+
+    This function creates a white background image and fills it with inflammation
+    values at specified coordinates, with each point occupying a step x step region.
+
+    Parameters
+    ----------
+    coords_x : array-like
+        X-coordinates of the points to be placed in the image.
+    coords_y : array-like
+        Y-coordinates of the points to be placed in the image.
+    inflams : array-like
+        Inflammation values (RGB tuples or single values) corresponding to each coordinate.
+        Must have the same length as coords_x and coords_y.
+    step : int
+        The size of the square region (step x step) for each point in the image.
+
+    Returns
+    -------
+    np.ndarray
+        A uint8 numpy array of shape (height, width, 3) representing an RGB image.
+        The image has a white background (255) with inflammation data painted at the
+        specified coordinates. Height and width are calculated based on the maximum
+        coordinates plus padding of 2*step.
+
+    Notes
+    -----
+    - The image is initialized with white (255) values on all channels.
+    - Coordinates are converted to integers before indexing.
+    - Points near the edges may be clipped based on the image dimensions.
+    """
+    image = np.zeros(
+        (int(coords_y.max()) + 2 * step, int(coords_x.max()) + 2 * step)
+    )
+    for x, y, p in zip(coords_x, coords_y, inflams):
+        image[int(y) : int(y) + step + 1, int(x) : int(x) + step + 1] = p
+    return image
+
+
 def load_models(pth):
     """
     Load multiple pre-trained ResNet34 models.
@@ -49,7 +90,7 @@ def load_models(pth):
         pth (str): Directory path containing the model checkpoint files.
     Returns:
         list: A list of 5 IndepResNetModel instances, each loaded with pre-trained weights
-              and moved to CUDA device for GPU computation.
+            and moved to CUDA device for GPU computation.
     """
     models = []
     for i in tqdm(range(1, 6), desc="loading TripleResnet34"):

@@ -227,6 +227,6 @@ def generate_patches_from_wsi(
         "vis_scale": vis_scale,
     }
 
-    handle = f"{coords_path}/{slide_name}_coords_checkpoint.pickle"
+    handle = f"{coords_path}/{slide_name}_coords_checkpoint.pt"
     torch.save(to_save, handle)
     print(slide_name, "done!")
