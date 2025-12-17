@@ -30,3 +30,4 @@ paths:
   pth_to_inflams_ckpts: "checkpoints/inflam_checkpoints"
   pth_to_preds_wsis: "results/overview_preds_tumor_wsis"
   pth_to_inflams_wsis: "results/overview_preds_inflam_wsis"
+  pth_to_maps: "results/overview_maps"
