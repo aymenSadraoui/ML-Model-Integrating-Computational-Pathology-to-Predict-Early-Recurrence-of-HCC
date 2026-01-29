@@ -1,0 +1,7 @@
+openslide-bin
+timm
+einops
+xmltodict
+monai
+xformers --index-url https://download.pytorch.org/whl/cu128
+kornia
