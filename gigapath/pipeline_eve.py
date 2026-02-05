@@ -15,7 +15,7 @@ from pathlib import Path
 from torchvision import transforms
 from typing import List, Tuple, Union
 from torch.utils.data import Dataset, DataLoader
-from gigapath.preprocessing.data.create_tiles_dataset import process_slide
+#from gigapath.preprocessing.data.create_tiles_dataset import process_slide
 
 
 class TileEncodingDataset(Dataset):
@@ -54,7 +54,7 @@ class TileEncodingDataset(Dataset):
         return {'img': torch.from_numpy(np.array(img)),
                 'coords': torch.from_numpy(np.array([x, y])).float()}
 
-
+'''
 def tile_one_slide(slide_file:str='', save_dir:str='', level:int=0, tile_size:int=256):
     """
     This function is used to tile a single slide and save the tiles to a directory.
@@ -118,7 +118,7 @@ def tile_one_slide(slide_file:str='', save_dir:str='', level:int=0, tile_size:in
     assert len(failed_df) == 0
 
     print(f"Slide {slide_file} has been tiled. {len(dataset_df)} tiles saved to {slide_dir}.")
-
+'''
 
 def load_tile_encoder_transforms() -> transforms.Compose:
     """Load the transforms for the tile encoder"""
