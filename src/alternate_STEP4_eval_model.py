@@ -8,10 +8,10 @@ class EmbedingDataset(torch.utils.data.Dataset):
     def __init__(self, embeddings_path, labels_path,split ='train'):
         if split == 'train':
             df0 = pd.read_excel(labels_path, sheet_name="PB").dropna(subset=["Patient"])
-            self.dict_labels = {int(df0.at[i, "Patient"]): int(df0.at[i,"Récidive avant 2 ans"]) for i in range(len(df0)) if int(df0.at[i, "Patient"])<90}
+            self.dict_labels = {int(df0.at[i, "Patient"]): int(df0.at[i,"Récidive avant 2 ans"]) for i in range(len(df0)) if int(df0.at[i, "Patient"])<50}
         elif split == 'val':
             df0 = pd.read_excel(labels_path, sheet_name="PB").dropna(subset=["Patient"])
-            self.dict_labels = {int(df0.at[i, "Patient"]): int(df0.at[i,"Récidive avant 2 ans"]) for i in range(len(df0)) if int(df0.at[i, "Patient"])>=90}
+            self.dict_labels = {int(df0.at[i, "Patient"]): int(df0.at[i,"Récidive avant 2 ans"]) for i in range(len(df0)) if int(df0.at[i, "Patient"])>=50}
         elif split == 'test':
             df1 = pd.read_excel(labels_path, sheet_name="HMN").dropna(subset=["Patient"])
             df2 = pd.read_excel(labels_path, sheet_name="BJN").dropna(subset=["Patient"])
@@ -30,17 +30,15 @@ class EmbedingDataset(torch.utils.data.Dataset):
         embedding = torch.load(self.pt_files[slide_id])['last_layer_embed']
         label = self.dict_labels[int(slide_id[:-1])]
         patient_id = slide_id[:-1]
-        target = torch.tensor([0,0], dtype=torch.float32)
-        target[label] = 1.0
+        target = torch.tensor(label, dtype=torch.float32)
         return embedding.to('cuda'), target.to('cuda'),patient_id
 
 # Load the pre-trained last layer model
-checkpoint_path = 'data/models/last_layer_best_99.pth'
-last_layer = torch.nn.Linear(in_features=768, out_features=2).to('cuda')
+checkpoint_path = 'data/models/last_layer_best.pth'
+last_layer = torch.nn.Sequential(torch.nn.Dropout(0.2),torch.nn.Linear(in_features=768, out_features=1)).to('cuda')
 last_layer.load_state_dict(torch.load(checkpoint_path))
 
-
-testDataset = EmbedingDataset(embeddings_path='data/features', labels_path="/home/eve/Downloads/Tableau 1 pour Eve(1).xlsx", split='test')
+testDataset = EmbedingDataset(embeddings_path='/media/eve/My Passport/data_hcc/features', labels_path="/home/eve/Downloads/Tableau 1 pour Eve(1).xlsx", split='val')
 testdataloader = torch.utils.data.DataLoader(testDataset, batch_size=1, shuffle=True)
 
 
@@ -72,8 +70,8 @@ for patient_id in set(patient_ids):
 y_true = []
 y_pred = []
 for output, label in final_outputs_list:
-    y_true.append(torch.argmax(label).item())
-    y_pred.append(torch.argmax(output).item())
+    y_true.append(label.item())
+    y_pred.append(output.item()>0.5)
 accuracy = accuracy_score(y_true, y_pred)
 print(f'Test Accuracy: {accuracy*100:.2f}%')
 # compute confusion matrix
@@ -119,7 +117,7 @@ from sklearn.metrics import roc_curve, auc
 
 y_scores = []
 for output, label in final_outputs_list:
-    y_scores.append(output.squeeze()[1].item())
+    y_scores.append(output.item())
 fpr, tpr, thresholds = roc_curve(y_true, y_scores)
 roc_auc = auc(fpr, tpr)
 plt.figure()
