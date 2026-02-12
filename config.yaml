@@ -2,8 +2,8 @@
 patching:
   vis_scale: 0.007
   patch_size: 528
-  patch_size_hm: 278
-  patch_size_bj: 528
+  patch_size_hm: 280
+  patch_size_bj: 487
   perc_wpx: 0.7
   perc_bpx: 0.05
   enlarge: 5
