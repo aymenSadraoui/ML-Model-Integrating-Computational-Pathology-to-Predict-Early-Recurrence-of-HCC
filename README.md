@@ -77,8 +77,6 @@ __Authors:__ Astrid Laurent-Bellue*, Aymen Sadraoui*, Aurélie Beaufrère, Julie
         ├── STEP4_detect_nucleus.ipynb
         ├── STEP5_gen_tumor_features.ipynb
         ├── STEP6_gen_inflammatory_features.ipynb
-        ├── STEP7_gen_nuclear_features.ipynb
-        ├── STEP8_combine_features.ipynb
         └── STEP9_modeling.ipynb
     ├── 📊results
     │    ├── 📁overview_preds_inflam_wsis
@@ -141,7 +139,6 @@ pages={2814-2819},
 author={Sadraoui, Aymen and Laurent-Bellue, Astrid and Kaaniche, Mounir and Benazza-Benyahia, Amel and Guettier, Catherine and Pesquet, Jean-Christophe},
 keywords={Image processing; Neural networks; Proximal gradient; unrolling; stain separation; histopathology}
 }
-
 ```
 
 
