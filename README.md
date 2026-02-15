@@ -58,9 +58,10 @@ __Authors:__ Astrid Laurent-Bellue*, Aymen Sadraoui*, Aurélie Beaufrère, Julie
     │    └── 📁tumor_checkpoints
     ├── 🗃️data
     │    ├── 📁patches
+    │    ├── 📁patches_bis
+    │    ├── 📁patches_He
     │    ├── 📁tabs
     │    └── 📁WSIs
-    ├── 🧪experiments
     ├── 🖼️figures
     ├── 🤖models
     │    ├── TripleIndepResNet34_Fold1.pt
@@ -69,12 +70,16 @@ __Authors:__ Astrid Laurent-Bellue*, Aymen Sadraoui*, Aurélie Beaufrère, Julie
     │    ├── TripleIndepResNet34_Fold4.pt
     │    └── TripleIndepResNet34_Fold5.pt
     ├── 📓notebooks
-    │    ├── color_transfer_from_PB_to_external.ipynb
-    │    ├── init_inflam_detection_with_Tia.ipynb
-    |    ├── resize_patches.ipynb
-    │    ├── STEP1_gen_patches_from_WSI.ipynb
-    │    ├── STEP2_detect_tumor_from_WSI.ipynb
-    │    └── STEP3_detect_inflammatory_cells.ipynb
+        ├── EDA.ipynb
+        ├── STEP1_gen_patches_from_WSI.ipynb
+        ├── STEP2_detect_tumor_from_WSI.ipynb
+        ├── STEP3_detect_inflammatory_cells.ipynb
+        ├── STEP4_detect_nucleus.ipynb
+        ├── STEP5_gen_tumor_features.ipynb
+        ├── STEP6_gen_inflammatory_features.ipynb
+        ├── STEP7_gen_nuclear_features.ipynb
+        ├── STEP8_combine_features.ipynb
+        └── STEP9_modeling.ipynb
     ├── 📊results
     │    ├── 📁overview_preds_inflam_wsis
     │    ├── 📁overview_preds_tumor_wsis
@@ -92,7 +97,9 @@ __Authors:__ Astrid Laurent-Bellue*, Aymen Sadraoui*, Aurélie Beaufrère, Julie
     │    ├── ImageSet.py
     │    ├── init.py
     │    ├── model_archi.py
+    │    ├── PGA.py
     │    ├── utils_inflams.py
+    │    ├── utils_nucleus.py
     │    ├── utils_tumor.py
     │    └── utils.py
     ├── .gitignore
