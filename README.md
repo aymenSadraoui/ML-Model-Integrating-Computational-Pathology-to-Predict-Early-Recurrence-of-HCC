@@ -117,7 +117,7 @@ You can download them from Google Drive:
 
 After downloading, place the weight files in the appropriate directory `models/`.
 
-> 📄 Note: If you use these pretrained models in your work, please consider citing:
+> 📄 Note 1: If you use these pretrained models in your work, please consider citing:
 ```
 @article{LAURENTBELLUE20241684,
 title = {Deep Learning Classification and Quantification of Pejorative and Nonpejorative Architectures in Resected Hepatocellular Carcinoma from Digital Histopathologic Images},
@@ -127,7 +127,21 @@ number = {9},
 pages = {1684-1700},
 year = {2024},
 issn = {0002-9440},
+author = {Astrid Laurent-Bellue and Aymen Sadraoui and Laura Claude and Julien Calderaro and Katia Posseme and Eric Vibert and Daniel Cherqui and Olivier Rosmorduc and Maïté Lewin and Jean-Christophe Pesquet and Catherine Guettier},
 }
+```
+
+> 📄 Note 2: If you use the `PGA model` in your work (for stain separation), please consider citing:
+```
+@INPROCEEDINGS{10648171,
+title={Unrolled Projected Gradient Algorithm For Stain Separation In Digital Histopathological Images}, 
+booktitle={2024 IEEE International Conference on Image Processing (ICIP)}, 
+year={2024},
+pages={2814-2819},
+author={Sadraoui, Aymen and Laurent-Bellue, Astrid and Kaaniche, Mounir and Benazza-Benyahia, Amel and Guettier, Catherine and Pesquet, Jean-Christophe},
+keywords={Image processing; Neural networks; Proximal gradient; unrolling; stain separation; histopathology}
+}
+
 ```
 
 
