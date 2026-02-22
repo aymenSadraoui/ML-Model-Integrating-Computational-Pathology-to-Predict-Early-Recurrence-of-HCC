@@ -1,12 +1,13 @@
 <p align="center">
   <strong style="color:#d73a49; font-size:1.2em;">
-    🚧 WORK IN PROGRESS — Code cleaning and upload in progress 🚧
+    <!-- 🚧 WORK IN PROGRESS — Code cleaning and upload in progress 🚧 -->
+    Code is ready to be used.
   </strong>
 </p>
 
-<p align="center">
+<!-- <p align="center">
   <img src="https://img.shields.io/badge/status-work_in_progress-red" />
-</p>
+</p> -->
 
 
 ## Machine Learning Model Integrating Computational Pathology to Predict Early Recurrence of Hepatocellular Carcinoma after Resection.
@@ -74,10 +75,11 @@ __Authors:__ Astrid Laurent-Bellue*, Aymen Sadraoui*, Aurélie Beaufrère, Julie
         ├── STEP1_gen_patches_from_WSI.ipynb
         ├── STEP2_detect_tumor_from_WSI.ipynb
         ├── STEP3_detect_inflammatory_cells.ipynb
-        ├── STEP4_detect_nucleus.ipynb
+        ├── STEP4_detect_nucleus_and_gen_features.ipynb
         ├── STEP5_gen_tumor_features.ipynb
         ├── STEP6_gen_inflammatory_features.ipynb
-        └── STEP9_modeling.ipynb
+        ├── STEP7_combine_all_features.ipynb
+        └── STEP8_modeling.ipynb
     ├── 📊results
     │    ├── 📁overview_preds_inflam_wsis
     │    ├── 📁overview_preds_tumor_wsis
