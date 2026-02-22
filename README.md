@@ -56,6 +56,8 @@ __Authors:__ Astrid Laurent-Bellue*, Aymen Sadraoui*, Aurélie Beaufrère, Julie
     │    ├── 📁coords_checkpoints
     |    ├── 📁inflam_dats
     |    ├── 📁inflam_checkpoints
+    |    ├── 📁nucleus_dats
+    |    ├── 📁nucleus_checkpoints
     │    └── 📁tumor_checkpoints
     ├── 🗃️data
     │    ├── 📁patches
@@ -79,7 +81,7 @@ __Authors:__ Astrid Laurent-Bellue*, Aymen Sadraoui*, Aurélie Beaufrère, Julie
         ├── STEP5_gen_tumor_features.ipynb
         ├── STEP6_gen_inflammatory_features.ipynb
         ├── STEP7_combine_all_features.ipynb
-        └── STEP8_modeling.ipynb
+        └── STEP8_build_and_run_model.ipynb
     ├── 📊results
     │    ├── 📁overview_preds_inflam_wsis
     │    ├── 📁overview_preds_tumor_wsis
