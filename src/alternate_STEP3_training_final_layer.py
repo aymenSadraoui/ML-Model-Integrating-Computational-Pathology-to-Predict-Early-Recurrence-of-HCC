@@ -13,7 +13,7 @@ lambda_reg = 1/76 # regularization strength
 PCA_rate = 1
 #PCA_rate = 1
 step ='final_train'# 'cross_val' or 'final_train'
-
+device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
 def evaluate_last_layer(val_dataloader,last_layer):
     last_layer.eval()
@@ -94,18 +94,13 @@ class EmbedingDataset(torch.utils.data.Dataset):
     def __init__(self, embeddings_path, labels_path,split ='train'):
         if split == 'train':
             df0 = pd.read_excel(labels_path, sheet_name="PB").dropna(subset=["Patient"])
-            self.dict_labels = {int(df0.at[i, "Patient"]): int(df0.at[i,"Récidive avant 2 ans"]) for i in range(len(df0)) if int(df0.at[i, "Patient"])<=80}
-        elif split == 'val':
-            df0 = pd.read_excel(labels_path, sheet_name="PB").dropna(subset=["Patient"])
-            self.dict_labels = {int(df0.at[i, "Patient"]): int(df0.at[i,"Récidive avant 2 ans"]) for i in range(len(df0)) if (int(df0.at[i, "Patient"])<90 and int(df0.at[i, "Patient"])>80)}
-        elif split == 'in_test':
-            df0 = pd.read_excel(labels_path, sheet_name="PB").dropna(subset=["Patient"])
-            self.dict_labels = {int(df0.at[i, "Patient"]): int(df0.at[i,"Récidive avant 2 ans"]) for i in range(len(df0)) if int(df0.at[i, "Patient"])>=90}
-        elif split == 'ext_test':
+            self.dict_labels = {int(df0.at[i, "Patient"]): int(df0.at[i,"Récidive avant 2 ans"]) for i in range(len(df0))}
+        elif split == 'test_HM':
             df1 = pd.read_excel(labels_path, sheet_name="HMN").dropna(subset=["Patient"])
-            df2 = pd.read_excel(labels_path, sheet_name="BJN").dropna(subset=["Patient"])
             self.dict_labels = {int(df1.at[i, "Patient"]): int(df1.at[i,"Récidive avant 2 ans"]) for i in range(len(df1))}
-            self.dict_labels.update({int(df2.at[i, "Patient"]): int(df2.at[i,"Récidive avant 2 ans"]) for i in range(len(df2))})
+        elif split == 'test_BJN':
+            df2 = pd.read_excel(labels_path, sheet_name="BJN").dropna(subset=["Patient"])
+            self.dict_labels = {int(df2.at[i, "Patient"]): int(df2.at[i,"Récidive avant 2 ans"]) for i in range(len(df2))}
         self.pt_files = {f.split('_')[0] : os.path.join(embeddings_path, f) for f in os.listdir(embeddings_path) if f.endswith('_features.pt')}
         # filter pt_files to keep only those in dict_labels
         self.pt_files = {k: v for k, v in self.pt_files.items() if int(k[:-1]) in self.dict_labels}
@@ -120,14 +115,14 @@ class EmbedingDataset(torch.utils.data.Dataset):
         label = self.dict_labels[int(slide_id[:-1])]
         target = torch.tensor(label, dtype=torch.float32)
         patient_id = slide_id[:-1]
-        return embedding.to('cuda'), target.to('cuda'),patient_id
+        return embedding.to(device), target.to(device),patient_id
 
 T = 200
 
 loss_fn = torch.nn.MSELoss()
 
 if step == 'cross_val':
-    trainDataset = EmbedingDataset(embeddings_path='/media/eve/My Passport/data_hcc/features', labels_path="/home/eve/Desktop/papier_aymen/sample_dataset/Label_slides.xlsx", split='train')
+    trainDataset = EmbedingDataset(embeddings_path='data/features', labels_path="data/Label_slides.xlsx", split='train')
     print(len(trainDataset))
     # pca path 
     if PCA_rate < 1.0:
@@ -136,10 +131,10 @@ if step == 'cross_val':
         pca = PCA(n_components= PCA_rate)
         train_data_pca = pca.fit_transform(train_data.cpu())
         # update dataloaders with pca data
-        trainDataset = torch.utils.data.TensorDataset(torch.tensor(train_data_pca, dtype=torch.float32).to('cuda'), torch.tensor([label for _, label in trainDataset], dtype=torch.float32).to('cuda'))
+        trainDataset = torch.utils.data.TensorDataset(torch.tensor(train_data_pca, dtype=torch.float32).to(device), torch.tensor([label for _, label in trainDataset], dtype=torch.float32).to(device))
         traindataloader = torch.utils.data.DataLoader(trainDataset, batch_size=6, shuffle=True)
         # update last layer input features
-        last_layer = torch.nn.Sequential(torch.nn.Linear(in_features=train_data_pca.shape[1], out_features=1)).to('cuda')
+        last_layer = torch.nn.Sequential(torch.nn.Linear(in_features=train_data_pca.shape[1], out_features=1)).to(device)
         print(f"PCA applied: reduced from 768 to {train_data_pca.shape[1]} features")
         # save pca model
         os.makedirs('data/models', exist_ok=True)
@@ -166,7 +161,7 @@ if step == 'cross_val':
         train_loader = torch.utils.data.DataLoader(train_subset, batch_size=6, shuffle=True)
         val_loader = torch.utils.data.DataLoader(val_subset, batch_size=1, shuffle=True)
 
-        last_layer = torch.nn.Sequential(torch.nn.Linear(in_features=768, out_features=1)).to('cuda')
+        last_layer = torch.nn.Sequential(torch.nn.Linear(in_features=768, out_features=1)).to(device)
         optimizer = torch.optim.Adam(last_layer.parameters(),lr = 1e-5)
         scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=T)
         l_losses = []
@@ -227,9 +222,9 @@ if step == 'cross_val':
         plt.legend()
         plt.show()'''
         # validate 
-        last_layer_best = torch.nn.Sequential(torch.nn.Linear(in_features=768, out_features=1)).to('cuda')
+        last_layer_best = torch.nn.Sequential(torch.nn.Linear(in_features=768, out_features=1)).to(device)
         if PCA_rate < 1.0 and pca is not None:
-            last_layer_best = torch.nn.Sequential(torch.nn.Linear(in_features=pca.n_components_, out_features=1)).to('cuda')
+            last_layer_best = torch.nn.Sequential(torch.nn.Linear(in_features=pca.n_components_, out_features=1)).to(device)
         last_layer_best.load_state_dict(torch.load(f'data/models/last_layer_best_{fold}.pth'))
         print(f"Evaluation of the best model on fold {fold+1}")
         results = evaluate_last_layer(val_loader,last_layer_best) 
@@ -241,18 +236,24 @@ if step == 'cross_val':
     os.makedirs('results/models', exist_ok=True)
     results_df.to_csv('results/models/last_layer_results.csv', index=False)
 
-## final training on the whole train dataset (val with 10%)
+## final training on the whole train dataset
 elif step == 'final_train':
-    trainDataset = EmbedingDataset(embeddings_path='/media/eve/My Passport/data_hcc/features', labels_path="/home/eve/Downloads/Tableau 1 pour Eve(1).xlsx", split='train')
+    trainDataset = EmbedingDataset(embeddings_path='data/features', labels_path="data/Label_slides.xlsx", split='train')
     train_loader = torch.utils.data.DataLoader(trainDataset, batch_size=6, shuffle=True)
+    # take 10% as validation set
+    val_size = int(0.1 * len(trainDataset))
+    train_size = len(trainDataset) - val_size
+    train_subset, val_subset = torch.utils.data.random_split(trainDataset, [train_size, val_size])
+    train_loader = torch.utils.data.DataLoader(train_subset, batch_size=6, shuffle=True)
+    val_loader = torch.utils.data.DataLoader(val_subset, batch_size=1, shuffle=True)
     #valDataset = EmbedingDataset(embeddings_path='/media/eve/My Passport/data_hcc/features', labels_path="/home/eve/Downloads/Tableau 1 pour Eve(1).xlsx", split='val')
     #val_loader = torch.utils.data.DataLoader(valDataset, batch_size=1, shuffle=True)
 
-    last_layer = torch.nn.Sequential(torch.nn.Linear(in_features=768, out_features=1)).to('cuda')
+    last_layer = torch.nn.Sequential(torch.nn.Linear(in_features=768, out_features=1)).to(device)
     optimizer = torch.optim.Adam(last_layer.parameters(),lr = 1e-5)
     scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=T)
     l_losses = []
-    #v_losses = []
+    v_losses = []
     min_cumulative_loss = float('inf')
     # train
     for epoch in range(T):  # number of epochs
@@ -280,34 +281,34 @@ elif step == 'final_train':
         print(f"Loss: {cumulative_loss / len(train_loader)}")
         scheduler.step()
         # validation
-        #last_layer.eval()
-        #cumulative_loss = 0.0
+        last_layer.eval()
+        cumulative_loss = 0.0
         #swa_cumulative_loss = 0.0
-        #with torch.no_grad():
-        #    for embeds,labels,_ in val_loader:
-        #            outputs = last_layer(embeds)
-        #            loss = loss_fn(outputs.squeeze(), labels.squeeze())
-        #            cumulative_loss += loss.item()
-        #            #swa_outputs = swa_model(embeds)
-        #            #swa_loss = loss_fn(swa_outputs.squeeze(), labels.squeeze())
-        #            #swa_cumulative_loss += swa_loss.item()
-        #    if cumulative_loss < min_cumulative_loss:
-        #            min_cumulative_loss = cumulative_loss
-        #            os.makedirs('data/models', exist_ok=True)
-        #            torch.save(last_layer.state_dict(), f'data/models/last_layer_final.pth')
-        #            print("Saved best model with loss:", min_cumulative_loss/len(val_loader))
-        #    print(f"Validation Loss: {cumulative_loss / len(val_loader)}")
-        #    #print(f"SWA Validation Loss: {swa_cumulative_loss / len(val_loader)}")
-        #    v_losses.append(cumulative_loss / len(val_loader))
+        with torch.no_grad():
+            for embeds,labels,_ in val_loader:
+                    outputs = last_layer(embeds)
+                    loss = loss_fn(outputs.squeeze(), labels.squeeze())
+                    cumulative_loss += loss.item()
+                    #swa_outputs = swa_model(embeds)
+                    #swa_loss = loss_fn(swa_outputs.squeeze(), labels.squeeze())
+                    #swa_cumulative_loss += swa_loss.item()
+            if cumulative_loss < min_cumulative_loss:
+                    min_cumulative_loss = cumulative_loss
+                    os.makedirs('data/models', exist_ok=True)
+                    torch.save(last_layer.state_dict(), f'data/models/last_layer_final.pth')
+                    print("Saved best model with loss:", min_cumulative_loss/len(val_loader))
+            print(f"Validation Loss: {cumulative_loss / len(val_loader)}")
+            #print(f"SWA Validation Loss: {swa_cumulative_loss / len(val_loader)}")
+            v_losses.append(cumulative_loss / len(val_loader))
         # save final model
-    os.makedirs('data/models', exist_ok=True) 
-    torch.save(last_layer.state_dict(), f'data/models/last_layer_final.pth')
+    #os.makedirs('data/models', exist_ok=True) 
+    #torch.save(last_layer.state_dict(), f'data/models/last_layer_final.pth')
 
     plt.plot(l_losses, label='Train Loss')
-    #plt.plot(v_losses, label='Validation Loss')
+    plt.plot(v_losses, label='Validation Loss')
     plt.xlabel('Epoch')
     plt.ylabel('Loss')
-    plt.title('Training Loss') #and Validation Loss')
+    plt.title('Training Loss and Validation Loss')
     plt.legend()
     plt.show()
     

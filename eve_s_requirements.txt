@@ -2,6 +2,10 @@ openslide-bin
 timm
 einops
 xmltodict
+pandas
+matplotlib
+openpyxl
 monai
+scikit-learn
 xformers --index-url https://download.pytorch.org/whl/cu128
 kornia

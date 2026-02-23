@@ -4,6 +4,7 @@ import os
 from sklearn.metrics import accuracy_score
 import matplotlib.pyplot as plt
 
+device = 'cuda' if torch.cuda.is_available() else 'cpu'
 PCA_rate = 1
 pca_model_path = 'data/models/pca_model.pth'
 pca = None
@@ -14,15 +15,13 @@ class EmbedingDataset(torch.utils.data.Dataset):
     def __init__(self, embeddings_path, labels_path,split ='train',pca=None):
         if split == 'train':
             df0 = pd.read_excel(labels_path, sheet_name="PB").dropna(subset=["Patient"])
-            self.dict_labels = {int(df0.at[i, "Patient"]): int(df0.at[i,"Récidive avant 2 ans"]) for i in range(len(df0)) if int(df0.at[i, "Patient"])<90}
-        elif split == 'val':
-            df0 = pd.read_excel(labels_path, sheet_name="PB").dropna(subset=["Patient"])
-            self.dict_labels = {int(df0.at[i, "Patient"]): int(df0.at[i,"Récidive avant 2 ans"]) for i in range(len(df0)) if int(df0.at[i, "Patient"])>=90}
-        elif split == 'test':
+            self.dict_labels = {int(df0.at[i, "Patient"]): int(df0.at[i,"Récidive avant 2 ans"]) for i in range(len(df0))}
+        elif split == 'test_HM':
             df1 = pd.read_excel(labels_path, sheet_name="HMN").dropna(subset=["Patient"])
-            df2 = pd.read_excel(labels_path, sheet_name="BJN").dropna(subset=["Patient"])
             self.dict_labels = {int(df1.at[i, "Patient"]): int(df1.at[i,"Récidive avant 2 ans"]) for i in range(len(df1))}
-            self.dict_labels.update({int(df2.at[i, "Patient"]): int(df2.at[i,"Récidive avant 2 ans"]) for i in range(len(df2))})
+        elif split == 'test_BJN':
+            df2 = pd.read_excel(labels_path, sheet_name="BJN").dropna(subset=["Patient"])
+            self.dict_labels = {int(df2.at[i, "Patient"]): int(df2.at[i,"Récidive avant 2 ans"]) for i in range(len(df2))}
         self.pt_files = {f.split('_')[0] : os.path.join(embeddings_path, f) for f in os.listdir(embeddings_path) if f.endswith('_features.pt')}
         # filter pt_files to keep only those in dict_labels
         self.pt_files = {k: v for k, v in self.pt_files.items() if int(k[:-1]) in self.dict_labels}
@@ -37,18 +36,18 @@ class EmbedingDataset(torch.utils.data.Dataset):
         embedding = torch.load(self.pt_files[slide_id])['last_layer_embed']
         label = self.dict_labels[int(slide_id[:-1])]
         if self.pca is not None:
-            embedding = torch.tensor(pca.transform(embedding.cpu()), dtype=torch.float32).to('cuda')
+            embedding = torch.tensor(pca.transform(embedding.cpu()), dtype=torch.float32).to(device)
         patient_id = slide_id[:-1]
         target = torch.tensor(label, dtype=torch.float32)
-        return embedding.to('cuda'), target.to('cuda'),patient_id
+        return embedding.to(device), target.to(device),patient_id
 
 # Load the pre-trained last layer model
 
-last_layer = torch.nn.Sequential(torch.nn.Linear(in_features=768,out_features=1)).to('cuda')
+last_layer = torch.nn.Sequential(torch.nn.Linear(in_features=768,out_features=1)).to(device)
 model_path = 'data/models/last_layer_final.pth' 
 last_layer.load_state_dict(torch.load(model_path))
 
-testDataset = EmbedingDataset(embeddings_path='/media/eve/My Passport/data_hcc/features', labels_path="/home/eve/Downloads/Tableau 1 pour Eve(1).xlsx", split='val', pca=pca)
+testDataset = EmbedingDataset(embeddings_path='data/features', labels_path="data/Label_slides.xlsx", split='test_HM', pca=pca)
 testdataloader = torch.utils.data.DataLoader(testDataset, batch_size=1, shuffle=True)
 print(len(testDataset))
 
