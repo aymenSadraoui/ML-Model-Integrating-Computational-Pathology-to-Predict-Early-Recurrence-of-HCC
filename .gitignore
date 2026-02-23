@@ -1,5 +1,5 @@
 .venv
-results/*
+results
 
 util_nbks
 data

@@ -1,12 +1,13 @@
 <p align="center">
   <strong style="color:#d73a49; font-size:1.2em;">
-    🚧 WORK IN PROGRESS — Code cleaning and upload in progress 🚧
+    <!-- 🚧 WORK IN PROGRESS — Code cleaning and upload in progress 🚧 -->
+    Code is ready to be used.
   </strong>
 </p>
 
-<p align="center">
+<!-- <p align="center">
   <img src="https://img.shields.io/badge/status-work_in_progress-red" />
-</p>
+</p> -->
 
 
 ## Machine Learning Model Integrating Computational Pathology to Predict Early Recurrence of Hepatocellular Carcinoma after Resection.
@@ -55,12 +56,15 @@ __Authors:__ Astrid Laurent-Bellue*, Aymen Sadraoui*, Aurélie Beaufrère, Julie
     │    ├── 📁coords_checkpoints
     |    ├── 📁inflam_dats
     |    ├── 📁inflam_checkpoints
+    |    ├── 📁nucleus_dats
+    |    ├── 📁nucleus_checkpoints
     │    └── 📁tumor_checkpoints
     ├── 🗃️data
     │    ├── 📁patches
+    │    ├── 📁patches_bis
+    │    ├── 📁patches_He
     │    ├── 📁tabs
     │    └── 📁WSIs
-    ├── 🧪experiments
     ├── 🖼️figures
     ├── 🤖models
     │    ├── TripleIndepResNet34_Fold1.pt
@@ -69,12 +73,15 @@ __Authors:__ Astrid Laurent-Bellue*, Aymen Sadraoui*, Aurélie Beaufrère, Julie
     │    ├── TripleIndepResNet34_Fold4.pt
     │    └── TripleIndepResNet34_Fold5.pt
     ├── 📓notebooks
-    │    ├── color_transfer_from_PB_to_external.ipynb
-    │    ├── init_inflam_detection_with_Tia.ipynb
-    |    ├── resize_patches.ipynb
-    │    ├── STEP1_gen_patches_from_WSI.ipynb
-    │    ├── STEP2_detect_tumor_from_WSI.ipynb
-    │    └── STEP3_detect_inflammatory_cells.ipynb
+        ├── EDA.ipynb
+        ├── STEP1_gen_patches_from_WSI.ipynb
+        ├── STEP2_detect_tumor_from_WSI.ipynb
+        ├── STEP3_detect_inflammatory_cells.ipynb
+        ├── STEP4_detect_nucleus_and_gen_features.ipynb
+        ├── STEP5_gen_tumor_features.ipynb
+        ├── STEP6_gen_inflammatory_features.ipynb
+        ├── STEP7_combine_all_features.ipynb
+        └── STEP8_build_and_run_model.ipynb
     ├── 📊results
     │    ├── 📁overview_preds_inflam_wsis
     │    ├── 📁overview_preds_tumor_wsis
@@ -92,7 +99,9 @@ __Authors:__ Astrid Laurent-Bellue*, Aymen Sadraoui*, Aurélie Beaufrère, Julie
     │    ├── ImageSet.py
     │    ├── init.py
     │    ├── model_archi.py
+    │    ├── PGA.py
     │    ├── utils_inflams.py
+    │    ├── utils_nucleus.py
     │    ├── utils_tumor.py
     │    └── utils.py
     ├── .gitignore
@@ -110,7 +119,7 @@ You can download them from Google Drive:
 
 After downloading, place the weight files in the appropriate directory `models/`.
 
-> 📄 Note: If you use these pretrained models in your work, please consider citing:
+> 📄 Note 1: If you use these pretrained models in your work, please consider citing:
 ```
 @article{LAURENTBELLUE20241684,
 title = {Deep Learning Classification and Quantification of Pejorative and Nonpejorative Architectures in Resected Hepatocellular Carcinoma from Digital Histopathologic Images},
@@ -120,6 +129,19 @@ number = {9},
 pages = {1684-1700},
 year = {2024},
 issn = {0002-9440},
+author = {Astrid Laurent-Bellue and Aymen Sadraoui and Laura Claude and Julien Calderaro and Katia Posseme and Eric Vibert and Daniel Cherqui and Olivier Rosmorduc and Maïté Lewin and Jean-Christophe Pesquet and Catherine Guettier},
+}
+```
+
+> 📄 Note 2: If you use the `PGA model` in your work (for stain separation), please consider citing:
+```
+@INPROCEEDINGS{10648171,
+title={Unrolled Projected Gradient Algorithm For Stain Separation In Digital Histopathological Images}, 
+booktitle={2024 IEEE International Conference on Image Processing (ICIP)}, 
+year={2024},
+pages={2814-2819},
+author={Sadraoui, Aymen and Laurent-Bellue, Astrid and Kaaniche, Mounir and Benazza-Benyahia, Amel and Guettier, Catherine and Pesquet, Jean-Christophe},
+keywords={Image processing; Neural networks; Proximal gradient; unrolling; stain separation; histopathology}
 }
 ```
 
