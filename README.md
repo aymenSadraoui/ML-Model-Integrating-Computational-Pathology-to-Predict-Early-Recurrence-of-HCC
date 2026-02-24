@@ -78,10 +78,11 @@ __Authors:__ Astrid Laurent-Bellue*, Aymen Sadraoui*, Aurélie Beaufrère, Julie
         ├── STEP2_detect_tumor_from_WSI.ipynb
         ├── STEP3_detect_inflammatory_cells.ipynb
         ├── STEP4_detect_nucleus_and_gen_features.ipynb
-        ├── STEP5_gen_tumor_features.ipynb
+        ├── STEP5_gen_nuclear_features.ipynb
         ├── STEP6_gen_inflammatory_features.ipynb
-        ├── STEP7_combine_all_features.ipynb
-        └── STEP8_build_and_run_model.ipynb
+        ├── STEP7_gen_tumor_features.ipynb
+        ├── STEP8_combine_all_features.ipynb
+        └── STEP9_build_and_run_model.ipynb
     ├── 📊results
     │    ├── 📁overview_preds_inflam_wsis
     │    ├── 📁overview_preds_tumor_wsis
