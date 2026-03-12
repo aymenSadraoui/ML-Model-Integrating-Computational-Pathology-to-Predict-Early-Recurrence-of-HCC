@@ -4,15 +4,8 @@ import os
 from sklearn.metrics import accuracy_score
 import matplotlib.pyplot as plt
 
-device = 'cuda' if torch.cuda.is_available() else 'cpu'
-PCA_rate = 1
-pca_model_path = 'data/models/pca_model.pth'
-pca = None
-if PCA_rate < 1.0:
-    pca = torch.load(pca_model_path,weights_only=False)
-
 class EmbedingDataset(torch.utils.data.Dataset):
-    def __init__(self, embeddings_path, labels_path,split ='train',pca=None):
+    def __init__(self, embeddings_path, labels_path,split ='train'):
         if split == 'train':
             df0 = pd.read_excel(labels_path, sheet_name="PB").dropna(subset=["Patient"])
             self.dict_labels = {int(df0.at[i, "Patient"]): int(df0.at[i,"Récidive avant 2 ans"]) for i in range(len(df0))}
@@ -26,7 +19,6 @@ class EmbedingDataset(torch.utils.data.Dataset):
         # filter pt_files to keep only those in dict_labels
         self.pt_files = {k: v for k, v in self.pt_files.items() if int(k[:-1]) in self.dict_labels}
         self.slide_ids = list(self.pt_files.keys())
-        self.pca = pca
         
     def __len__(self):
         return len(self.pt_files)
@@ -35,32 +27,71 @@ class EmbedingDataset(torch.utils.data.Dataset):
         slide_id = self.slide_ids[idx]
         embedding = torch.load(self.pt_files[slide_id])['last_layer_embed']
         label = self.dict_labels[int(slide_id[:-1])]
-        if self.pca is not None:
-            embedding = torch.tensor(pca.transform(embedding.cpu()), dtype=torch.float32).to(device)
+        embedding = embedding.cpu().numpy()
         patient_id = slide_id[:-1]
-        target = torch.tensor(label, dtype=torch.float32)
-        return embedding.to(device), target.to(device),patient_id
+        target = label
+        return embedding, target,patient_id
 
-# Load the pre-trained last layer model
+# Load the pre-trained model
+model_path = 'data/models/SVM_classifier_aymen.pth' 
+model = torch.load(model_path,weights_only=False)
 
-last_layer = torch.nn.Sequential(torch.nn.Linear(in_features=768,out_features=1)).to(device)
-model_path = 'data/models/last_layer_final.pth' 
-last_layer.load_state_dict(torch.load(model_path))
+if 'fm' in model_path:
+    testDataset = EmbedingDataset(embeddings_path='data/features', labels_path="data/Label_slides.xlsx", split='test_HM')
+    testdataloader = torch.utils.data.DataLoader(testDataset, batch_size=1, shuffle=True)
+    print(len(testDataset))
 
-testDataset = EmbedingDataset(embeddings_path='data/features', labels_path="data/Label_slides.xlsx", split='test_HM', pca=pca)
-testdataloader = torch.utils.data.DataLoader(testDataset, batch_size=1, shuffle=True)
-print(len(testDataset))
 
-last_layer.eval()
-outputs_list = []
-labels_list = []
-patient_ids = []
-with torch.no_grad():
-    for embeds,labels,patient_id in testdataloader:
-        outputs = last_layer(embeds)
-        outputs_list.append(outputs.cpu())
-        labels_list.append(labels.cpu())
-        patient_ids.append(patient_id[0])
+    outputs_list = []
+    labels_list = []
+    patient_ids = []
+
+    for embeds,labels,patient_id in testDataset:
+        outputs = model.predict_proba(embeds)[0,1]
+        outputs_list.append(outputs)
+        labels_list.append(labels)
+        patient_ids.append(patient_id)
+else:
+    df = pd.read_excel("data/tabs/input_dataframe_prognosis.xlsx")
+    cols_to_scale = [
+        "Pattern expansif multinodulaire",
+        "log1p_taille",
+        "log1p_AFP",
+        "%P",
+        "%P_max",
+        "NP_CntArea_norm",
+        "P_CntArea_norm",
+        "P_CntArea_norm_max",
+        "Intra-tumoral",
+        "Peri-tumoral",
+        "density",
+        "mean nucleus area",
+        "anisocaryose",
+        "nucleocyto index",
+    ]
+
+    #same for HM external validation
+    df_hm = df.loc[df["patient"].between(111, 160)]
+    # patients from BJ
+    df_bj = df.loc[df["patient"].between(161, 212) | df["patient"].between(223, 252)]
+
+    # make a test_dataset
+    embedings = df_hm[cols_to_scale].values
+    labelings = df_hm["Récidive Globale"].values
+    patient_idings = df_hm["patient"].values
+    
+    test_dataset = torch.utils.data.TensorDataset(torch.tensor(embedings, dtype=torch.float32), torch.tensor(labelings, dtype=torch.long), torch.tensor(patient_idings, dtype=torch.long))
+
+    # compute outputs
+    outputs_list = []
+    labels_list = []
+    patient_ids = []
+
+    for embeds,labels,patient_id in test_dataset:
+        outputs = model.predict_proba([embeds])[0,1]
+        outputs_list.append(outputs)
+        labels_list.append(labels)
+        patient_ids.append(patient_id)
 
 # compute a mean of the results accross patients
 final_outputs_list = []
@@ -68,7 +99,7 @@ for patient_id in set(patient_ids):
     indices = [i for i, pid in enumerate(patient_ids) if pid == patient_id]
     if len(indices) > 1:
         # average outputs and labels
-        output_ind = torch.stack([outputs_list[i] for i in indices])
+        output_ind = torch.stack([torch.tensor(outputs_list[i]) for i in indices])
         avg_output = torch.median(output_ind, dim=0).values
         label = labels_list[indices[0]]
     else:
@@ -80,7 +111,7 @@ for patient_id in set(patient_ids):
 y_true = []
 y_pred = []
 for output, label in final_outputs_list:
-    y_true.append(label.item())
+    y_true.append(label)
     y_pred.append(output.item()>0.5)
 accuracy = accuracy_score(y_true, y_pred)
 print(f'Test Accuracy: {accuracy*100:.2f}%')

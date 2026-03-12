@@ -3,16 +3,26 @@ import pandas as pd
 import os
 import matplotlib.pyplot as plt
 from sklearn.decomposition import PCA
-from sklearn.model_selection import KFold
+from sklearn.preprocessing import RobustScaler
+from sklearn.model_selection import KFold, StratifiedKFold
 from torch.utils.data import Subset
 from sklearn.metrics import accuracy_score,roc_curve, auc,confusion_matrix, f1_score, precision_recall_curve
+import argparse
 
-regularization_type = 'L1'  # or 'L2'
-lambda_reg = 1/76 # regularization strength
-#lambda_reg = 0
+def parse_arguments():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--l1" , type=float, default=1/76, help="Regularization strength for L1 regularization")
+    parser.add_argument("--step", type=str, default='final_train', help="Step to execute: 'cross_val', '73-38_train' or 'final_train'")
+    parser.add_argument('--normalize', type=bool, default=True, help="Whether to normalize the data using RobustScaler")
+    parser.add_argument('--seed', type=int, default=42, help="Random seed for reproducibility")
+    args = parser.parse_args()
+    return args
+
+args = parse_arguments()
+regularization_type = 'L1'  # or None
+lambda_reg = args.l1 # regularization strength
 PCA_rate = 1
-#PCA_rate = 1
-step ='final_train'# 'cross_val' or 'final_train'
+step =args.step # 'cross_val' or 'final_train'
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
 def evaluate_last_layer(val_dataloader,last_layer):
@@ -89,12 +99,26 @@ def evaluate_last_layer(val_dataloader,last_layer):
     precision, recall, thresholds = precision_recall_curve(y_true, y_scores)
     return {'accuracy' : accuracy,'cm' : cm, 'f1' : f1,'sensitivity' : sensitivity, 'specificity' : specificity, 'ppv' : ppv, 'npv' : npv, 'roc_auc' : roc_auc}
 
+class TensorPatientDataset(torch.utils.data.Dataset):
+    def __init__(self, data_tensor, target_tensor, patient_ids):
+        self.data_tensor = data_tensor
+        self.target_tensor = target_tensor
+        self.patient_ids = patient_ids
+
+    def __len__(self):
+        return self.data_tensor.size(0)
+
+    def __getitem__(self, index):
+        return self.data_tensor[index], self.target_tensor[index], self.patient_ids[index]
 
 class EmbedingDataset(torch.utils.data.Dataset):
-    def __init__(self, embeddings_path, labels_path,split ='train'):
+    def __init__(self, embeddings_path, labels_path,split ='train',pid=False):
         if split == 'train':
             df0 = pd.read_excel(labels_path, sheet_name="PB").dropna(subset=["Patient"])
-            self.dict_labels = {int(df0.at[i, "Patient"]): int(df0.at[i,"Récidive avant 2 ans"]) for i in range(len(df0))}
+            self.dict_labels = {int(df0.at[i, "Patient"]): int(df0.at[i,"Récidive avant 2 ans"]) for i in range(len(df0)) if int(df0.at[i,"Patient"])<90}
+        elif split == 'val':
+            df0 = pd.read_excel(labels_path, sheet_name="PB").dropna(subset=["Patient"])
+            self.dict_labels = {int(df0.at[i, "Patient"]): int(df0.at[i,"Récidive avant 2 ans"]) for i in range(len(df0)) if int(df0.at[i,"Patient"])>=90}
         elif split == 'test_HM':
             df1 = pd.read_excel(labels_path, sheet_name="HMN").dropna(subset=["Patient"])
             self.dict_labels = {int(df1.at[i, "Patient"]): int(df1.at[i,"Récidive avant 2 ans"]) for i in range(len(df1))}
@@ -123,6 +147,8 @@ loss_fn = torch.nn.MSELoss()
 
 if step == 'cross_val':
     trainDataset = EmbedingDataset(embeddings_path='data/features', labels_path="data/Label_slides.xlsx", split='train')
+    trainDataset_2 = EmbedingDataset(embeddings_path='data/features', labels_path="data/Label_slides.xlsx", split='val')
+    trainDataset = torch.utils.data.ConcatDataset([trainDataset, trainDataset_2])
     print(len(trainDataset))
     # pca path 
     if PCA_rate < 1.0:
@@ -152,12 +178,26 @@ if step == 'cross_val':
     # Training loop for the final layer
     # cross validation setup
     global_results = []
-    kfold = KFold(n_splits=5, shuffle=True)
+    kfold = StratifiedKFold(n_splits = 5,shuffle=True)#KFold(n_splits=5, shuffle=True)
 
-    for fold, (train_idx, val_idx) in enumerate(kfold.split(trainDataset)):
+    for fold, (train_idx, val_idx) in enumerate(kfold.split(trainDataset,y=[0]*len(trainDataset))):
         print(f"Fold {fold+1}")
         train_subset = Subset(trainDataset, train_idx)
         val_subset = Subset(trainDataset, val_idx)
+        if args.normalize:
+            # normalize train and val data using sklearn robust scaler
+            train_data = torch.cat([emb for emb, _ ,_ in train_subset], dim=0)
+            robust_scaler = RobustScaler()
+            train_data = robust_scaler.fit_transform(train_data.cpu())
+            # update train_subset with normalized data
+            train_subset = TensorPatientDataset(torch.tensor(train_data, dtype=torch.float32).to(device), torch.tensor([label for _, label,_ in train_subset], dtype=torch.float32).to(device),[patient_id for _, _, patient_id in train_subset])
+            # normalize val data using the same scaler
+            val_data = torch.cat([emb for emb, _,_ in val_subset], dim=0)
+            val_data = robust_scaler.transform(val_data.cpu())
+            # update val_subset with normalized data
+            val_subset = TensorPatientDataset(torch.tensor(val_data, dtype=torch.float32).to(device), torch.tensor([label for _, label,_ in val_subset], dtype=torch.float32).to(device),[patient_id for _, _, patient_id in val_subset])
+
+
         train_loader = torch.utils.data.DataLoader(train_subset, batch_size=6, shuffle=True)
         val_loader = torch.utils.data.DataLoader(val_subset, batch_size=1, shuffle=True)
 
@@ -192,26 +232,31 @@ if step == 'cross_val':
 
             print(f"Loss: {cumulative_loss / len(train_loader)}")
             scheduler.step()
+            if min_cumulative_loss> cumulative_loss:
+                min_cumulative_loss = cumulative_loss
+                os.makedirs('data/models', exist_ok=True)
+                torch.save(last_layer.state_dict(), f'data/models/last_layer_best_train_{fold}.pth')
+                print("Saved best model with loss:", min_cumulative_loss/len(train_loader))
             # validation
-            last_layer.eval()
-            cumulative_loss = 0.0
+            #last_layer.eval()
+            #cumulative_loss = 0.0
             #swa_cumulative_loss = 0.0
-            with torch.no_grad():
-                for embeds,labels,_ in val_loader:
-                    outputs = last_layer(embeds)
-                    loss = loss_fn(outputs.squeeze(), labels.squeeze())
-                    cumulative_loss += loss.item()
-                    #swa_outputs = swa_model(embeds)
-                    #swa_loss = loss_fn(swa_outputs.squeeze(), labels.squeeze())
-                    #swa_cumulative_loss += swa_loss.item()
-                if cumulative_loss < min_cumulative_loss:
-                    min_cumulative_loss = cumulative_loss
-                    os.makedirs('data/models', exist_ok=True)
-                    torch.save(last_layer.state_dict(), f'data/models/last_layer_best_{fold}.pth')
-                    print("Saved best model with loss:", min_cumulative_loss/len(val_loader))
-            print(f"Validation Loss: {cumulative_loss / len(val_loader)}")
+            #with torch.no_grad():
+            #    for embeds,labels,_ in val_loader:
+            #        outputs = last_layer(embeds)
+            #        loss = loss_fn(outputs.squeeze(), labels.squeeze())
+            #        cumulative_loss += loss.item()
+            #        #swa_outputs = swa_model(embeds)
+            #        #swa_loss = loss_fn(swa_outputs.squeeze(), labels.squeeze())
+            #        #swa_cumulative_loss += swa_loss.item()
+            #    if cumulative_loss < min_cumulative_loss:
+            #        min_cumulative_loss = cumulative_loss
+            #        os.makedirs('data/models', exist_ok=True)
+            #        #torch.save(last_layer.state_dict(), f'data/models/last_layer_best_{fold}.pth')
+            #        print("Saved best model with loss:", min_cumulative_loss/len(val_loader))
+            #print(f"Validation Loss: {cumulative_loss / len(val_loader)}")
             #print(f"SWA Validation Loss: {swa_cumulative_loss / len(val_loader)}")
-            v_losses.append(cumulative_loss / len(val_loader))
+            #v_losses.append(cumulative_loss / len(val_loader))
             #swav_losses.append(swa_cumulative_loss / len(val_loader))
         '''plt.plot(l_losses, label='Train Loss')
         plt.plot(v_losses, label='Validation Loss')
@@ -225,7 +270,7 @@ if step == 'cross_val':
         last_layer_best = torch.nn.Sequential(torch.nn.Linear(in_features=768, out_features=1)).to(device)
         if PCA_rate < 1.0 and pca is not None:
             last_layer_best = torch.nn.Sequential(torch.nn.Linear(in_features=pca.n_components_, out_features=1)).to(device)
-        last_layer_best.load_state_dict(torch.load(f'data/models/last_layer_best_{fold}.pth'))
+        last_layer_best.load_state_dict(torch.load(f'data/models/last_layer_best_train_{fold}.pth'))
         print(f"Evaluation of the best model on fold {fold+1}")
         results = evaluate_last_layer(val_loader,last_layer_best) 
         print(results)
@@ -236,14 +281,29 @@ if step == 'cross_val':
     os.makedirs('results/models', exist_ok=True)
     results_df.to_csv('results/models/last_layer_results.csv', index=False)
 
-## final training on the whole train dataset
+
 elif step == 'final_train':
+    torch.manual_seed(args.seed)
     trainDataset = EmbedingDataset(embeddings_path='data/features', labels_path="data/Label_slides.xlsx", split='train')
-    train_loader = torch.utils.data.DataLoader(trainDataset, batch_size=6, shuffle=True)
-    # take 10% as validation set
+    trainDataset_2 = EmbedingDataset(embeddings_path='data/features', labels_path="data/Label_slides.xlsx", split='val')
+    trainDataset = torch.utils.data.ConcatDataset([trainDataset, trainDataset_2])
+    # pick 10% for validation
     val_size = int(0.1 * len(trainDataset))
     train_size = len(trainDataset) - val_size
     train_subset, val_subset = torch.utils.data.random_split(trainDataset, [train_size, val_size])
+    if args.normalize:
+        # normalize train and val data using sklearn robust scaler
+        train_data = torch.cat([emb for emb, _,_ in train_subset], dim=0)
+        robust_scaler = RobustScaler()
+        train_data = robust_scaler.fit_transform(train_data.cpu())
+        # update train_subset with normalized data
+        train_subset = TensorPatientDataset(torch.tensor(train_data, dtype=torch.float32).to(device), torch.tensor([label for _, label,_ in train_subset], dtype=torch.float32).to(device),[patient_id for _, _, patient_id in train_subset])
+        # normalize val data using the same scaler
+        val_data = torch.cat([emb for emb, _,_ in val_subset], dim=0)
+        val_data = robust_scaler.transform(val_data.cpu())
+        # update val_subset with normalized data
+        val_subset = TensorPatientDataset(torch.tensor(val_data, dtype=torch.float32).to(device), torch.tensor([label for _, label,_ in val_subset], dtype=torch.float32).to(device),[patient_id for _, _, patient_id in val_subset])
+
     train_loader = torch.utils.data.DataLoader(train_subset, batch_size=6, shuffle=True)
     val_loader = torch.utils.data.DataLoader(val_subset, batch_size=1, shuffle=True)
     #valDataset = EmbedingDataset(embeddings_path='/media/eve/My Passport/data_hcc/features', labels_path="/home/eve/Downloads/Tableau 1 pour Eve(1).xlsx", split='val')
@@ -296,6 +356,93 @@ elif step == 'final_train':
                     min_cumulative_loss = cumulative_loss
                     os.makedirs('data/models', exist_ok=True)
                     torch.save(last_layer.state_dict(), f'data/models/last_layer_final.pth')
+                    print("Saved best model with loss:", min_cumulative_loss/len(val_loader))
+            print(f"Validation Loss: {cumulative_loss / len(val_loader)}")
+            #print(f"SWA Validation Loss: {swa_cumulative_loss / len(val_loader)}")
+            v_losses.append(cumulative_loss / len(val_loader))
+        # save final model
+    #os.makedirs('data/models', exist_ok=True) 
+    #torch.save(last_layer.state_dict(), f'data/models/last_layer_final.pth')
+
+    plt.plot(l_losses, label='Train Loss')
+    plt.plot(v_losses, label='Validation Loss')
+    plt.xlabel('Epoch')
+    plt.ylabel('Loss')
+    plt.title('Training Loss and Validation Loss')
+    plt.legend()
+    plt.show()
+
+## final training on the 73-38 train dataset
+elif step == '73-38_train':
+    torch.manual_seed(args.seed)
+    train_subset = EmbedingDataset(embeddings_path='data/features', labels_path="data/Label_slides.xlsx", split='train')
+    train_loader = torch.utils.data.DataLoader(train_subset, batch_size=6, shuffle=True)
+    val_subset = EmbedingDataset(embeddings_path='data/features', labels_path="data/Label_slides.xlsx", split='val')
+    if args.normalize:
+        # normalize train and val data using sklearn robust scaler
+        train_data = torch.cat([emb for emb, _ ,_ in train_subset], dim=0)
+        robust_scaler = RobustScaler()
+        train_data = robust_scaler.fit_transform(train_data.cpu())
+        # update train_subset with normalized data
+        train_subset = TensorPatientDataset(torch.tensor(train_data, dtype=torch.float32).to(device), torch.tensor([label for _, label,_ in train_subset], dtype=torch.float32).to(device),[patient_id for _, _, patient_id in train_subset])
+        # normalize val data using the same scaler
+        val_data = torch.cat([emb for emb,_, _ in val_subset], dim=0)
+        val_data = robust_scaler.transform(val_data.cpu())
+        # update val_subset with normalized data
+        val_subset = TensorPatientDataset(torch.tensor(val_data, dtype=torch.float32).to(device), torch.tensor([label for _, label,_ in val_subset], dtype=torch.float32).to(device),[patient_id for _, _, patient_id in val_subset])
+
+    train_loader = torch.utils.data.DataLoader(train_subset, batch_size=6, shuffle=True)
+    val_loader = torch.utils.data.DataLoader(val_subset, batch_size=1, shuffle=True)
+    #valDataset = EmbedingDataset(embeddings_path='/media/eve/My Passport/data_hcc/features', labels_path="/home/eve/Downloads/Tableau 1 pour Eve(1).xlsx", split='val')
+    #val_loader = torch.utils.data.DataLoader(valDataset, batch_size=1, shuffle=True)
+
+    last_layer = torch.nn.Sequential(torch.nn.Linear(in_features=768, out_features=1)).to(device)
+    optimizer = torch.optim.Adam(last_layer.parameters(),lr = 1e-5)
+    scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=T)
+    l_losses = []
+    v_losses = []
+    min_cumulative_loss = float('inf')
+    # train
+    for epoch in range(T):  # number of epochs
+        print(f"Epoch {epoch+1}")
+        cumulative_loss = 0.0
+        
+        # train
+        last_layer.train()
+        for embeds,labels,_ in train_loader:
+            # forward pass
+            outputs = last_layer(embeds)
+            loss = loss_fn(outputs.squeeze(), labels.squeeze())
+            optimizer.zero_grad()
+            cumulative_loss += loss.item()
+            # Apply L1 regularization
+            if regularization_type == 'L1':
+                l1_norm = sum(p.abs().sum() for p in last_layer.parameters())
+                loss += lambda_reg * l1_norm
+            # backward pass and optimization
+            loss.backward()
+            optimizer.step()
+            #swa_model.update_parameters(last_layer)
+        l_losses.append(cumulative_loss / len(train_loader))
+
+        print(f"Loss: {cumulative_loss / len(train_loader)}")
+        scheduler.step()
+        # validation
+        last_layer.eval()
+        cumulative_loss = 0.0
+        #swa_cumulative_loss = 0.0
+        with torch.no_grad():
+            for embeds,labels,_ in val_loader:
+                    outputs = last_layer(embeds)
+                    loss = loss_fn(outputs.squeeze(), labels.squeeze())
+                    cumulative_loss += loss.item()
+                    #swa_outputs = swa_model(embeds)
+                    #swa_loss = loss_fn(swa_outputs.squeeze(), labels.squeeze())
+                    #swa_cumulative_loss += swa_loss.item()
+            if cumulative_loss < min_cumulative_loss:
+                    min_cumulative_loss = cumulative_loss
+                    os.makedirs('data/models', exist_ok=True)
+                    torch.save(last_layer.state_dict(), f'data/models/last_layer_73-38.pth')
                     print("Saved best model with loss:", min_cumulative_loss/len(val_loader))
             print(f"Validation Loss: {cumulative_loss / len(val_loader)}")
             #print(f"SWA Validation Loss: {swa_cumulative_loss / len(val_loader)}")
